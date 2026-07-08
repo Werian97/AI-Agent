@@ -19,6 +19,9 @@ def main():
 
     parser = argparse.ArgumentParser(description="Chatbot")
     parser.add_argument("user_prompt", type=str, help="User prompt")
+    parser.add_argument('--verbose', action='store_true', help="Enable verbose output")
+
+
     args = parser.parse_args()
 # Now we can access `args.user_prompt`
 
@@ -34,11 +37,13 @@ def main():
         messages=messages
 )
     if response.usage is not None:
-        print(f"Prompt tokens: {response.usage.prompt_tokens}")
-        print(f"Response tokens: {response.usage.completion_tokens}")
+        if args.verbose:
+            print(f"User prompt: {args.user_prompt}")
+            print(f"Prompt tokens: {response.usage.prompt_tokens}")
+            print(f"Response tokens: {response.usage.completion_tokens}")
     else:
         raise RuntimeError("attribute 'usage' of response is None")
-    print(response.choices[0].message.content)
+    print(response.choices[0].message.content) #answer content
 
 if __name__ == "__main__":
     main()
