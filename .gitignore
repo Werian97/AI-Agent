@@ -9,5 +9,8 @@ wheels/
 # Virtual environments
 .venv
 
-# environmental variables
+# Environmental variables
 .env
+
+# Tests
+mytest.py
