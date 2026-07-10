@@ -1,5 +1,7 @@
 import os
 
+from openai.types.chat import ChatCompletionToolUnionParam
+
 def write_file(working_directory: str, file_path: str, content: str) -> str:
     try:
         workdir_abs_path: str = os.path.abspath(working_directory)
@@ -16,7 +18,27 @@ def write_file(working_directory: str, file_path: str, content: str) -> str:
                 f.write(content)
             return f'Successfully wrote to "{file_path}" ({len(content)} characters written)'
 
-
-            
     except Exception as e:
         return f"Error: {type(e).__name__} exception occurred: {e}"
+
+schema_write_file: ChatCompletionToolUnionParam = {
+    "type": "function",
+    "function": {
+        "name": "write_file",
+        "description": "given a file path and a content the function write that content in to the file. If the file does not exist it is created. If some parent directory of the file path does not exist it is created",
+        "parameters": {
+            "type": "object",
+            "required": ["file_path", "content"],
+            "properties": {
+                "file_path": {
+                    "type": "string",
+                    "description": "the file path to the file that we want to edit",
+                },
+                "content": {
+                    "type": "string",
+                    "description": "the string that we will edit the file with",
+                },
+            },
+        },
+    },
+}

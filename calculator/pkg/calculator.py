@@ -10,12 +10,21 @@ class Calculator:
             "-": lambda a, b: a - b,
             "*": lambda a, b: a * b,
             "/": lambda a, b: a / b,
+            "**": lambda a, b: a ** b,
         }
         self.precedence: dict[str, int] = {
             "+": 1,
             "-": 1,
             "*": 2,
             "/": 2,
+            "**": 3,
+        }
+        self.associativity: dict[str, str] = {
+            "+": "left",
+            "-": "left",
+            "*": "left",
+            "/": "left",
+            "**": "right",
         }
 
     def evaluate(self, expression: str) -> float | None:
@@ -33,7 +42,16 @@ class Calculator:
                 while (
                     operators
                     and operators[-1] in self.operators
-                    and self.precedence[operators[-1]] >= self.precedence[token]
+                    and (
+                        (
+                            self.associativity[operators[-1]] == "left"
+                            and self.precedence[operators[-1]] >= self.precedence[token]
+                        )
+                        or (
+                            self.associativity[operators[-1]] == "right"
+                            and self.precedence[operators[-1]] > self.precedence[token]
+                        )
+                    )
                 ):
                     self._apply_operator(operators, values)
                 operators.append(token)

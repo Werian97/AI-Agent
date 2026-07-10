@@ -24,6 +24,18 @@ class TestCalculator(unittest.TestCase):
         result = self.calculator.evaluate("10 / 2")
         self.assertEqual(result, 5)
 
+    def test_power(self) -> None:
+        result = self.calculator.evaluate("2 ** 3")
+        self.assertEqual(result, 8)
+
+    def test_power_precedence(self) -> None:
+        result = self.calculator.evaluate("2 + 3 ** 2")
+        self.assertEqual(result, 11)
+
+    def test_power_right_associative(self) -> None:
+        result = self.calculator.evaluate("2 ** 3 ** 2")
+        self.assertEqual(result, 512)
+
     def test_nested_expression(self) -> None:
         result = self.calculator.evaluate("3 * 4 + 5")
         self.assertEqual(result, 17)

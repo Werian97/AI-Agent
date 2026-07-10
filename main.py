@@ -1,49 +1,41 @@
-import os
-import argparse
+import sys
 
-from dotenv import load_dotenv
+import prompts
 
-from openai import OpenAI
-from openai.types.chat import ChatCompletionMessageParam, ChatCompletion
+from openai.types.chat import ChatCompletionMessageParam, ChatCompletion, ChatCompletionMessage
+
+from call_functions import available_functions
+from utility_functions import call_a_client, check_for_usage, execute_order, take_arguments
+from typing import cast
+
+from config import MAX_ITERATIONS
 
 def main():
-    load_dotenv()
-    api_key = os.environ.get("OPENROUTER_API_KEY")
-    if api_key is None:
-        raise RuntimeError("There was a problem with the OPENROUTER_API_KEY variable")
-    
-    client = OpenAI(
-    base_url="https://openrouter.ai/api/v1",
-    api_key=api_key,
-)
-
-    parser = argparse.ArgumentParser(description="Chatbot")
-    parser.add_argument("user_prompt", type=str, help="User prompt")
-    parser.add_argument('--verbose', action='store_true', help="Enable verbose output")
-
-
-    args = parser.parse_args()
+    client = call_a_client()
+    args = take_arguments()
 # Now we can access `args.user_prompt`
 
     messages: list[ChatCompletionMessageParam] = [
-        {
-            "role": "user",
-            "content": args.user_prompt
-        }
+        {"role": "system", "content": prompts.system_prompt},
+        {"role": "user", "content": args.user_prompt}
     ]
+    for _ in range(MAX_ITERATIONS):
+        response: ChatCompletion = client.chat.completions.create(
+            model="openrouter/free",
+            messages=messages,
+            tools=available_functions
+        )
+        check_for_usage(response, args)
+        message: ChatCompletionMessage = response.choices[0].message
+        messages.append(cast(ChatCompletionMessageParam, message))
+        if message.tool_calls is None:
+            print(message.content) #answer content
+            return None
+        else:
+            execute_order(message, args, messages)
+    print(f"The agent couldn't finish the work within {MAX_ITERATIONS} iterations")
+    sys.exit(1)
 
-    response: ChatCompletion = client.chat.completions.create(
-        model="openrouter/free",
-        messages=messages
-)
-    if response.usage is not None:
-        if args.verbose:
-            print(f"User prompt: {args.user_prompt}")
-            print(f"Prompt tokens: {response.usage.prompt_tokens}")
-            print(f"Response tokens: {response.usage.completion_tokens}")
-    else:
-        raise RuntimeError("attribute 'usage' of response is None")
-    print(response.choices[0].message.content) #answer content
 
 if __name__ == "__main__":
     main()

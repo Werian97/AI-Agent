@@ -1,5 +1,7 @@
 import os
 
+from openai.types.chat import ChatCompletionToolUnionParam
+
 from config import MAX_CHARS
 
 def get_file_content(working_directory: str, file_path: str) -> str:
@@ -21,3 +23,21 @@ def get_file_content(working_directory: str, file_path: str) -> str:
             
     except Exception as e:
         return f"Error: {type(e).__name__} exception occurred: {e}"
+    
+schema_get_file_content: ChatCompletionToolUnionParam = {
+    "type": "function",
+    "function": {
+        "name": "get_file_content",
+        "description": "given a file path the function read and returns the content of a file. If the file is a directory it returns an error message instead",
+        "parameters": {
+            "type": "object",
+            "required": ["file_path"],
+            "properties": {
+                "file_path": {
+                    "type": "string",
+                    "description": "the file path to the file that we want to get the content of",
+                },
+            },
+        },
+    },
+}
